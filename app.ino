@@ -18,7 +18,6 @@ class KbdRptParser : public KeyboardReportParser
 
     void OnKeyDown	(uint8_t mod, uint8_t key);
     void OnKeyUp	(uint8_t mod, uint8_t key);
-    void OnKeyPressed(uint8_t key);
 };
 
 void KbdRptParser::OnControlKeysChanged(uint8_t before, uint8_t after)
@@ -37,11 +36,6 @@ void KbdRptParser::OnKeyDown(uint8_t mod, uint8_t key)
 void KbdRptParser::OnKeyUp(uint8_t mod, uint8_t key)
 {
   keyboard::reportRelease(mod, key);
-}
-
-void KbdRptParser::OnKeyPressed(uint8_t key)
-{
-  Serial.print("OnKeyPressed\n");
 }
 
 USB     Usb;
