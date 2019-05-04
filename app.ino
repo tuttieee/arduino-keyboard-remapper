@@ -23,8 +23,6 @@ bool keyPressedFlags[KEYMAP_SIZE];  // TODO: Confirm that this occupies KEYMAP_S
 
 class KbdRptParser : public KeyboardReportParser
 {
-    // void PrintKey(uint8_t mod, uint8_t key);
-
   protected:
     void OnControlKeysChanged(uint8_t before, uint8_t after);
 
