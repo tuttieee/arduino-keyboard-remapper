@@ -3,7 +3,7 @@
 namespace keymap {
 
 void onKeyPressed(KeyMap keymaps[], int keymapSize, KeyPressedFlag keyPressedFlags[], uint8_t* mod, uint8_t* key) {
-  uint8_t mappedKey = 0;
+  uint8_t mappedKey = *key;
 
   // FROM key TO key and mod
   for (int i=0; i<keymapSize; i++) {
@@ -23,7 +23,7 @@ void onKeyPressed(KeyMap keymaps[], int keymapSize, KeyPressedFlag keyPressedFla
 }
 
 void onKeyReleased(KeyMap keymaps[], int keymapSize, KeyPressedFlag keyPressedFlags[], uint8_t* mod, uint8_t* key) {
-  uint8_t mappedKey = 0;
+  uint8_t mappedKey = *key;
 
   // FROM key TO key and mod
   for (int i=0; i<keymapSize; i++) {
