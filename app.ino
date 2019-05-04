@@ -23,7 +23,10 @@ class KbdRptParser : public KeyboardReportParser
 
 void KbdRptParser::OnControlKeysChanged(uint8_t before, uint8_t after)
 {
-  Serial.print("OnControlKeysChanged\n");
+  uint8_t change = before ^ after;
+  if (change != 0) {
+    keyboard::reportModifier(after);
+  }
 }
 
 void KbdRptParser::OnKeyDown(uint8_t mod, uint8_t key)

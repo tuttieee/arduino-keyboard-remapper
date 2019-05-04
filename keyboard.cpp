@@ -61,6 +61,11 @@ void keyboard::reportRelease(uint8_t mod, uint8_t key)
   _sendReport();
 }
 
+void keyboard::reportModifier(uint8_t mod) {
+  keyReport.modifiers = mod;
+  _sendReport();
+}
+
 void keyboard::reportReleaseAll(void)
 {
   keyreport::releaseAllKey(&keyReport);
