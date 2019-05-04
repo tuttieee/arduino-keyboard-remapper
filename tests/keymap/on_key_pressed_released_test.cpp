@@ -69,6 +69,41 @@ TEST(onKeyPressedTest, SwappingTwoKeys) {
   EXPECT_EQ(key, 0x04);
 }
 
+TEST(onKeyPressedTest, SingleModToModMapping) {
+  const int keymapSize = 1;
+  KeyMap keymaps[keymapSize] = {
+    {{MOD_LEFT_SHIFT, 0}, {MOD_LEFT_CTRL, 0}},
+  };
+  KeyPressedFlag keyPressedFlags[keymapSize];
+
+  uint8_t mod;
+  uint8_t key = 0x04;
+
+  // The source modifier is pressed;
+  clearKeyPressedFlags(keyPressedFlags, keymapSize, false);
+  mod = MOD_LEFT_SHIFT;
+  onKeyPressed(keymaps, keymapSize, keyPressedFlags, &mod, &key);
+  EXPECT_EQ(mod, MOD_LEFT_CTRL);
+  EXPECT_EQ(keyPressedFlags[0], true);
+  EXPECT_EQ(key, 0x04);
+
+  // The target modifier is pressed
+  clearKeyPressedFlags(keyPressedFlags, keymapSize, false);
+  mod = MOD_LEFT_CTRL;
+  onKeyPressed(keymaps, keymapSize, keyPressedFlags, &mod, &key);
+  EXPECT_EQ(mod, MOD_LEFT_CTRL);
+  EXPECT_EQ(keyPressedFlags[0], false);
+  EXPECT_EQ(key, 0x04);
+
+  // Another modifier is pressed
+  clearKeyPressedFlags(keyPressedFlags, keymapSize, false);
+  mod = MOD_RIGHT_GUI;
+  onKeyPressed(keymaps, keymapSize, keyPressedFlags, &mod, &key);
+  EXPECT_EQ(mod, MOD_RIGHT_GUI);
+  EXPECT_EQ(keyPressedFlags[0], false);
+  EXPECT_EQ(key, 0x04);
+}
+
 TEST(onKeyReleasedTest, SingleKeyToKey) {
   const int keymapSize = 1;
   KeyMap keymaps[keymapSize] = {
@@ -130,4 +165,79 @@ TEST(onKeyReleasedTest, SwappingTwoKeys) {
   EXPECT_EQ(keyPressedFlags[0], true);
   EXPECT_EQ(keyPressedFlags[1], false);
   EXPECT_EQ(key, 0x04);
+}
+
+TEST(onKeyReleasedTest, SingleModToModMapping) {
+  const int keymapSize = 1;
+  KeyMap keymaps[keymapSize] = {
+    {{MOD_LEFT_SHIFT, 0}, {MOD_LEFT_CTRL, 0}},
+  };
+  KeyPressedFlag keyPressedFlags[keymapSize];
+
+  uint8_t mod;
+  uint8_t key = 0x04;
+
+  // The source modifier is pressed;
+  clearKeyPressedFlags(keyPressedFlags, keymapSize, false);
+  mod = MOD_LEFT_SHIFT;
+  onKeyReleased(keymaps, keymapSize, keyPressedFlags, &mod, &key);
+  EXPECT_EQ(mod, MOD_LEFT_CTRL);
+  EXPECT_EQ(keyPressedFlags[0], true);
+  EXPECT_EQ(key, 0x04);
+
+  // The target modifier is pressed
+  clearKeyPressedFlags(keyPressedFlags, keymapSize, false);
+  mod = MOD_LEFT_CTRL;
+  onKeyReleased(keymaps, keymapSize, keyPressedFlags, &mod, &key);
+  EXPECT_EQ(mod, MOD_LEFT_CTRL);
+  EXPECT_EQ(keyPressedFlags[0], false);
+  EXPECT_EQ(key, 0x04);
+
+  // Another modifier is pressed
+  clearKeyPressedFlags(keyPressedFlags, keymapSize, false);
+  mod = MOD_RIGHT_GUI;
+  onKeyReleased(keymaps, keymapSize, keyPressedFlags, &mod, &key);
+  EXPECT_EQ(mod, MOD_RIGHT_GUI);
+  EXPECT_EQ(keyPressedFlags[0], false);
+  EXPECT_EQ(key, 0x04);
+}
+
+TEST(onKeyPressedReleasedTest, CapsToCtrl) {
+  const int keymapSize = 1;
+  KeyMap keymaps[keymapSize] = {
+    {{0, 0x39}, {MOD_LEFT_CTRL, 0}},
+  };
+  KeyPressedFlag keyPressedFlags[keymapSize];
+
+  clearKeyPressedFlags(keyPressedFlags, keymapSize, false);
+  // First, the source key is presse
+  uint8_t mod1 = 0;
+  uint8_t key1 = 0x39;  // CapsLock
+  onKeyPressed(keymaps, keymapSize, keyPressedFlags, &mod1, &key1);
+  EXPECT_EQ(mod1, MOD_LEFT_CTRL);
+  EXPECT_EQ(keyPressedFlags[0], true);
+  EXPECT_EQ(key1, 0x00);
+
+  // Second, a printing key is pressed
+  uint8_t mod2 = 0;
+  uint8_t key2 = 0x04;  // 'a'
+  onKeyPressed(keymaps, keymapSize, keyPressedFlags, &mod2, &key2);
+  EXPECT_EQ(mod2, MOD_LEFT_CTRL);
+  EXPECT_EQ(keyPressedFlags[0], true);
+  EXPECT_EQ(key2, 0x04);
+
+  // Then, release
+  uint8_t mod3 = 0;
+  uint8_t key3 = 0x04;  // 'a'
+  onKeyReleased(keymaps, keymapSize, keyPressedFlags, &mod3, &key3);
+  EXPECT_EQ(mod3, MOD_LEFT_CTRL);
+  EXPECT_EQ(keyPressedFlags[0], true);
+  EXPECT_EQ(key3, 0x04);
+
+  uint8_t mod4 = 0;
+  uint8_t key4 = 0x39;  // CapsLock
+  onKeyReleased(keymaps, keymapSize, keyPressedFlags, &mod4, &key4);
+  EXPECT_EQ(mod4, 0);
+  EXPECT_EQ(keyPressedFlags[0], false);
+  EXPECT_EQ(key4, 0x00);
 }

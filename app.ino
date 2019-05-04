@@ -10,14 +10,14 @@
 #include "keyboard.h"
 #include "keymap.h"
 
-#define KEYMAP_SIZE 3
+#define KEYMAP_SIZE 5
 const keymap::KeyMap keymaps[KEYMAP_SIZE] =
 {
   {{MOD_LEFT_CTRL, 0}, {0, 0x39}},  // left-ctrl to capsLock
   {{0, 0x39}, {MOD_LEFT_CTRL, 0}},  // capsLock to left-ctrl
-  // {{0, 0x04}, {0, 0x05}},  // 'a' to 'b'  // Not working
+  {{0, 0x04}, {0, 0x05}},  // 'a' to 'b'
   {{0, 0x05}, {0, 0x04}},  // 'b' to 'a'
-  // {{MOD_LEFT_SHIFT, 0}, {MOD_LEFT_CTRL, 0}},  // Not working
+  {{MOD_LEFT_SHIFT, 0}, {MOD_LEFT_CTRL, 0}},  // left-shift to left-ctrl
 };
 bool keyPressedFlags[KEYMAP_SIZE];  // TODO: Confirm that this occupies KEYMAP_SIZE bits, but not KEYMAP_SIZE * 8 bits for memory efficiency.
 
