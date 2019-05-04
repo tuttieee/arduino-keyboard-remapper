@@ -70,26 +70,32 @@ int run_tests() {  // TODO: Refactoring by some unit testing framework
     return 1;
   }
 
-  // Modifier key: press and release
-  setKeyPressed(&keyReport, 0b00000001, 0);
-  if (keyReport.modifiers != 0b00000001) {
-    cout << "keyReport.modifiers != 0b00000001";
+  setKeyReleased(&keyReport, 0, 0x40);
+  if (keyReport.keys[0] != 0) {
+    cout << "keyReport.keys[0] != 0";
     return 1;
   }
-  setKeyPressed(&keyReport, 0b00000010, 0);
-  if (keyReport.modifiers != 0b00000011) {
-    cout << "keyReport.modifiers != 0b00000011";
+  if (keyReport.keys[1] != 0x41) {
+    cout << "keyReport.keys[0] != 0x41";
     return 1;
   }
-  setKeyReleased(&keyReport, 0b00000010, 0);
-  if (keyReport.modifiers != 0b00000001) {
-    cout << "keyReport.modifiers != 0b00000001";
+  for (int i=2; i<KEY_REPORT_KEYS_NUM; i++) {
+    if (keyReport.keys[i] != 0) {
+      cout << "keyReport.keys[" << i << "] != 0";
+      return 1;
+    }
+  }
+  if (keyReport.modifiers != 0) {
+    cout << "keyReport.modifiers != 0";
     return 1;
   }
-  setKeyReleased(&keyReport, 0b00000001, 0);
-  if (keyReport.modifiers != 0b00000000) {
-    cout << "keyReport.modifiers != 0b00000000";
-    return 1;
+
+  setKeyReleased(&keyReport, 0, 0x41);
+  for (int i=0; i<KEY_REPORT_KEYS_NUM; i++) {
+    if (keyReport.keys[i] != 0) {
+      cout << "keyReport.keys[" << i << "] != 0";
+      return 1;
+    }
   }
 
   return 0;
