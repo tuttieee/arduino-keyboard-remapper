@@ -3,13 +3,16 @@
 namespace keymap {
 
 void onKeyPressed(KeyMap keymaps[], int keymapSize, KeyPressedFlag keyPressedFlags[], uint8_t* mod, uint8_t* key) {
+  uint8_t mappedKey = 0;
+
   // FROM key TO key and mod
   for (int i=0; i<keymapSize; i++) {
     if (keymaps[i].from.key == *key) {
-      *key = keymaps[i].to.key;  // This assumes one 'from' key is mapped to at most 1 'to' key. If There are multiple mappings, only the last one affects.
+      mappedKey = keymaps[i].to.key;  // This assumes one 'from' key is mapped to at most 1 'to' key. If There are multiple mappings, only the last one affects.
       keyPressedFlags[i] = true; // On the other hand, 'from' key can be mapped to multiple 'to' mods.
     }
   }
+  *key = mappedKey;
 
   // TO mod
   for (int i=0; i<keymapSize; i++) {
