@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include "../keymap.h"
+#include "../../keymap.h"
 
 using namespace keymap;
 
