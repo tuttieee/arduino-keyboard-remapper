@@ -47,43 +47,52 @@ int onModChanged(KeyMap keymaps[], int keymapSize, KeyPressedFlag keyPressedFlag
   if (change == 0) { return 0; }
 
   uint8_t mappedMod = after;
+  uint8_t mappedModBits = 0;
   uint8_t mappedKey = 0;
-  bool mappedKeyPressed;
+  bool isKeyMapped = false, mappedKeyPressed;
 
   for (int i=0; i<keymapSize; i++) {
     if (keymaps[i].from.mod & change) {
       // keymaps[i].from.mod changes
 
-      // keymaps[i].from.mod's bit is restored from `before`
-      mappedMod = (mappedMod & ~keymaps[i].from.mod) | (before & keymaps[i].from.mod);
-
       if (after & change) {
-        // keymaps[i].from.mod DOWN
+        // keymaps[i].from.mod DOWN (newly set to 1)
         keyPressedFlags[i] = true;
 
         // 'To' key is added. This assumes one 'from' mod is mapped to at most 1 'to' keys. If there are multiple 'to' keys, the only last one affects.
-        *_isKeyMapped = true;
-        mappedKey = keymaps[i].to.key;
-        mappedKeyPressed = true;
+        if (keymaps[i].to.key != 0) {
+          isKeyMapped = true;
+          mappedKey = keymaps[i].to.key;
+          mappedKeyPressed = true;
+        }
 
-        // 'To' mod is added.
+        // Set mappedMod's target bit to 1
         mappedMod |= keymaps[i].to.mod;
       } else {
-        // keymaps[i].from.mod UP
+        // keymaps[i].from.mod UP (newly set to 0)
         keyPressedFlags[i] = false;
 
         // 'To' key is released.
-        *_isKeyMapped = true;
-        mappedKey = keymaps[i].to.key;
-        mappedKeyPressed = false;
+        if (keymaps[i].to.key != 0) {
+          isKeyMapped = true;
+          mappedKey = keymaps[i].to.key;
+          mappedKeyPressed = false;
+        }
 
-        // 'To' mod is removed
-        mappedMod |= ~keymaps[i].to.mod;
+        // Set mappedMod's target bit to 0
+        mappedMod &= ~keymaps[i].to.mod;
       }
+
+      // Set mappedMod's source bit to 0 if the bit is not mapped from any mod bits;
+      mappedMod &= ~(keymaps[i].from.mod & ~mappedModBits);
+
+      // Save mapping bit
+      mappedModBits |= keymaps[i].from.mod;
     }
   }
 
   *_mappedMod = mappedMod;
+  *_isKeyMapped = isKeyMapped;
   *_mappedKey = mappedKey;
   *_mappedKeyPressed = mappedKeyPressed;
 

@@ -2,13 +2,9 @@
 
 #include "../../keymap.h"
 
-using namespace keymap;
+#include "utils.h"
 
-void clearKeyPressedFlags(KeyPressedFlag keyPressedFlags[], int size, bool value) {
-  for (int i=0; i < size; i++) {
-    keyPressedFlags[i] = value;
-  }
-}
+using namespace keymap;
 
 TEST(onKeyPressedTest, SingleKeyToKey) {
   const int keymapSize = 1;
