@@ -44,3 +44,7 @@ endif()
 add_executable(keyreport-test keyreport_test.cpp ../keyreport.cpp)
 target_link_libraries(keyreport-test gtest_main)
 add_test(NAME keyreport-test COMMAND $<TARGET_FILE:keyreport-test>)
+
+add_executable(keymap-test keymap_test.cpp ../keymap.cpp)
+target_link_libraries(keymap-test gtest_main)
+add_test(NAME keymap-test COMMAND $<TARGET_FILE:keymap-test>)
