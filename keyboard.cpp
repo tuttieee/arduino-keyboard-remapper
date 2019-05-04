@@ -1,4 +1,5 @@
 #include "keyboard.h"
+#include "keyreport.h"
 
 static const uint8_t _hidReportDescriptor[] PROGMEM = {
 
@@ -33,16 +34,11 @@ static const uint8_t _hidReportDescriptor[] PROGMEM = {
     0xc0,                          // END_COLLECTION
 };
 
-keyboard::KeyReport keyReport;
-
-void _releaseAll(void)
-{
-  memset(&keyReport, 0, sizeof(keyboard::KeyReport));
-}
+keyreport::KeyReport keyReport;
 
 void _sendReport()
 {
-  HID().SendReport(2, &keyReport, sizeof(keyboard::KeyReport));
+  HID().SendReport(2, &keyReport, sizeof(keyreport::KeyReport));
 }
 
 void keyboard::initKeyboard(void)
@@ -50,55 +46,23 @@ void keyboard::initKeyboard(void)
   static HIDSubDescriptor node(_hidReportDescriptor, sizeof(_hidReportDescriptor));
   HID().AppendDescriptor(&node);
 
-  _releaseAll();
+  keyreport::releaseAllKey(&keyReport);
 }
 
 void keyboard::reportPress(uint8_t mod, uint8_t key)
 {
-  if (key != 0) {
-    bool alreadySet = false;
-    int8_t emptySlot = -1;
-    for (uint8_t i = 0; i < KEY_REPORT_KEYS_NUM; i++) {
-      if (keyReport.keys[i] == key) {
-        alreadySet = true;
-      }
-      if (keyReport.keys[i] == 0x0 && emptySlot < 0) {
-        emptySlot = i;
-      }
-    }
-    if (emptySlot < 0) {
-      // Error condition.
-      return;
-    }
-
-    if (!alreadySet) {
-      keyReport.keys[emptySlot] = key;
-    }
-  }
-
-  keyReport.modifiers = mod;
-
+  keyreport::setKeyPressed(&keyReport, mod, key);
   _sendReport();
 }
 
 void keyboard::reportRelease(uint8_t mod, uint8_t key)
 {
-  if (key != 0) {
-    for (uint8_t i = 0; i < KEY_REPORT_KEYS_NUM; i++) {
-      if (keyReport.keys[i] == key) {
-        keyReport.keys[i] = 0;
-        break;
-      }
-    }
-  }
-
-  keyReport.modifiers = mod;
-
+  keyreport::setKeyReleased(&keyReport, mod, key);
   _sendReport();
 }
 
 void keyboard::reportReleaseAll(void)
 {
-  _releaseAll();
+  keyreport::releaseAllKey(&keyReport);
   _sendReport();
 }
