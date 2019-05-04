@@ -23,13 +23,16 @@ void onKeyPressed(KeyMap keymaps[], int keymapSize, KeyPressedFlag keyPressedFla
 }
 
 void onKeyReleased(KeyMap keymaps[], int keymapSize, KeyPressedFlag keyPressedFlags[], uint8_t* mod, uint8_t* key) {
+  uint8_t mappedKey = 0;
+
   // FROM key TO key and mod
   for (int i=0; i<keymapSize; i++) {
     if (keymaps[i].from.key == *key) {
-      *key = keymaps[i].to.key;
+      mappedKey = keymaps[i].to.key;
       keyPressedFlags[i] = false;
     }
   }
+  *key = mappedKey;
 
   // TO mod
   for (int i=0; i<keymapSize; i++) {
