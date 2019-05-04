@@ -37,17 +37,6 @@ static const uint8_t _hidReportDescriptor[] PROGMEM = {
 
 keyreport::KeyReport keyReport;
 
-#define KEYMAP_SIZE 3
-const keymap::KeyMap keymaps[KEYMAP_SIZE] =
-{
-  {{MOD_LEFT_CTRL, 0}, {0, 0x39}},  // left-ctrl to capsLock
-  {{0, 0x39}, {MOD_LEFT_CTRL, 0}},  // capsLock to left-ctrl
-  // {{0, 0x04}, {0, 0x05}},  // 'a' to 'b'  // Not working
-  {{0, 0x05}, {0, 0x04}},  // 'b' to 'a'
-  // {{MOD_LEFT_SHIFT, 0}, {MOD_LEFT_CTRL, 0}},  // Not working
-};
-bool keyPressed[KEYMAP_SIZE];  // TODO: Confirm that this occupies KEYMAP_SIZE bits, but not KEYMAP_SIZE * 8 bits for memory efficiency.
-
 void _sendReport()
 {
   HID().SendReport(2, &keyReport, sizeof(keyreport::KeyReport));
@@ -59,43 +48,22 @@ void keyboard::initKeyboard(void)
   HID().AppendDescriptor(&node);
 
   keyreport::releaseAllKey(&keyReport);
-
-  memset(&keyPressed, 0, sizeof(keyPressed));
 }
 
 void keyboard::reportPress(uint8_t mod, uint8_t key)
 {
-  keymap::onKeyPressed(keymaps, KEYMAP_SIZE, keyPressed, &mod, &key);
-
   keyreport::setKeyPressed(&keyReport, mod, key);
   _sendReport();
 }
 
 void keyboard::reportRelease(uint8_t mod, uint8_t key)
 {
-  keymap::onKeyReleased(keymaps, KEYMAP_SIZE, keyPressed, &mod, &key);
-
   keyreport::setKeyReleased(&keyReport, mod, key);
   _sendReport();
 }
 
-void keyboard::reportModifier(uint8_t before, uint8_t after) {
-  uint8_t mappedMod, mappedKey;
-  bool isKeyMapped, mappedKeyPressed;
-
-  int result = keymap::onModChanged(keymaps, KEYMAP_SIZE, keyPressed, before, after, &mappedMod, &isKeyMapped, &mappedKey, &mappedKeyPressed);
-  if (result == 0) { return; }
-
-  if (isKeyMapped) {
-    if (mappedKeyPressed) {
-      keyreport::setKeyPressed(&keyReport, mappedMod, mappedKey);
-    } else {
-      keyreport::setKeyReleased(&keyReport, mappedMod, mappedKey);
-    }
-  }
-
-  keyReport.modifiers = mappedMod;
-
+void keyboard::reportModifier(uint8_t mod) {
+  keyReport.modifiers = mod;
   _sendReport();
 }
 

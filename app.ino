@@ -8,6 +8,18 @@
 #include <SPI.h>
 
 #include "keyboard.h"
+#include "keymap.h"
+
+#define KEYMAP_SIZE 3
+const keymap::KeyMap keymaps[KEYMAP_SIZE] =
+{
+  {{MOD_LEFT_CTRL, 0}, {0, 0x39}},  // left-ctrl to capsLock
+  {{0, 0x39}, {MOD_LEFT_CTRL, 0}},  // capsLock to left-ctrl
+  // {{0, 0x04}, {0, 0x05}},  // 'a' to 'b'  // Not working
+  {{0, 0x05}, {0, 0x04}},  // 'b' to 'a'
+  // {{MOD_LEFT_SHIFT, 0}, {MOD_LEFT_CTRL, 0}},  // Not working
+};
+bool keyPressedFlags[KEYMAP_SIZE];  // TODO: Confirm that this occupies KEYMAP_SIZE bits, but not KEYMAP_SIZE * 8 bits for memory efficiency.
 
 class KbdRptParser : public KeyboardReportParser
 {
@@ -22,16 +34,33 @@ class KbdRptParser : public KeyboardReportParser
 
 void KbdRptParser::OnControlKeysChanged(uint8_t before, uint8_t after)
 {
-  keyboard::reportModifier(before, after);
+  uint8_t mappedMod, mappedKey;
+  bool isKeyMapped, mappedKeyPressed;
+
+  int mappingOccurred = keymap::onModChanged(keymaps, KEYMAP_SIZE, keyPressedFlags, before, after, &mappedMod, &isKeyMapped, &mappedKey, &mappedKeyPressed);
+  if (mappingOccurred == 0) { return; }
+
+  if (isKeyMapped) {
+    if (mappedKeyPressed) {
+      keyboard::reportPress(mappedMod, mappedKey);
+    } else {
+      keyboard::reportRelease(mappedMod, mappedKey);
+    }
+  }
+
+  keyboard::reportModifier(mappedMod);
 }
 
-void KbdRptParser::OnKeyDown(uint8_t mod, uint8_t key)
-{
+void KbdRptParser::OnKeyDown(uint8_t mod, uint8_t key) {
+  keymap::onKeyPressed(keymaps, KEYMAP_SIZE, keyPressedFlags, &mod, &key);
+
   keyboard::reportPress(mod, key);
 }
 
 void KbdRptParser::OnKeyUp(uint8_t mod, uint8_t key)
 {
+  keymap::onKeyReleased(keymaps, KEYMAP_SIZE, keyPressedFlags, &mod, &key);
+
   keyboard::reportRelease(mod, key);
 }
 
@@ -44,6 +73,8 @@ KbdRptParser Prs;
 void setup()
 {
   keyboard::initKeyboard();
+
+  memset(&keyPressedFlags, 0, sizeof(keyPressedFlags));
 
   Serial.begin( 115200 );
   Serial.println("Start");
