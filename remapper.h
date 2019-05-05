@@ -5,7 +5,7 @@
 
 #include "keymap.h"
 
-#define KEYMAP_SIZE 6
+#define KEYMAP_SIZE 8
 
 class KbdRemapper : public KeyboardReportParser
 {
