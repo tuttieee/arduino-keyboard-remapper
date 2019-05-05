@@ -1,0 +1,8 @@
+box: debian
+build:
+  steps:
+    - install-packages:
+        packages: build-essential cmake git
+    - script:
+        name: Run test
+        code: make test
