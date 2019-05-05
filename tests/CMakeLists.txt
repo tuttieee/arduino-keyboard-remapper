@@ -52,3 +52,10 @@ add_executable(keymap-test
   ../keymap.cpp)
 target_link_libraries(keymap-test gtest_main)
 add_test(NAME keymap-test COMMAND $<TARGET_FILE:keymap-test>)
+
+add_executable(mod-key-combo-test
+  keymap/utils.cpp
+  keymap/mod_key_combo_test.cpp
+  ../keymap.cpp)
+target_link_libraries(mod-key-combo-test gtest_main)
+add_test(NAME mod-key-combo-test COMMAND $<TARGET_FILE:mod-key-combo-test>)

@@ -7,6 +7,13 @@ void onKeyPressed(KeyMap keymaps[], int keymapSize, KeyPressedFlag keyPressedFla
   uint8_t mappedModBits = 0;
   uint8_t mappedKey = *key;
 
+  // Already mapped mods are ignored
+  for (int i=0; i<keymapSize; i++) {
+    if (keyPressedFlags[i]) {
+      mappedMod &= ~keymaps[i].from.mod;
+    }
+  }
+
   // Combination keymaps are first priority at detecting pressing.
   bool combinationFound = false;
   for (int i=0; i<keymapSize; i++) {
@@ -78,12 +85,15 @@ void onKeyReleased(KeyMap keymaps[], int keymapSize, KeyPressedFlag keyPressedFl
     // from key
     if (keymaps[i].from.key == *key) {
       // to key
-      mappedKey = keymaps[i].to.key;
+      if (keymaps[i].from.mod == 0) {
+        // Only single source key (without source mod) is handled here.
+        mappedKey = keymaps[i].to.key;
+      }
       // to mod (continue to below)
-      keyPressedFlags[i] = false;
+      keyPressedFlags[i] = false;  // Combination keymap is anyway released if at least the key is released.
     }
     // from mod
-    if (keymaps[i].from.mod & *mod) {
+    if (keymaps[i].from.mod & *mod && keymaps[i].from.key == 0) {
       // keymaps[i].from.mod is pressed
       keyPressedFlags[i] = true;
 
@@ -100,7 +110,6 @@ void onKeyReleased(KeyMap keymaps[], int keymapSize, KeyPressedFlag keyPressedFl
   }
 
   // Combination keymaps are handled as OR condition at releasing.
-  bool combinationFound = false;
   for (int i=0; i<keymapSize; i++) {
     // from mod-key combination
     if (keymaps[i].from.key == *key && keymaps[i].from.mod & *mod) {
@@ -109,14 +118,12 @@ void onKeyReleased(KeyMap keymaps[], int keymapSize, KeyPressedFlag keyPressedFl
       // to mod
       // Set pressed flag to set mod later (see below)
       keyPressedFlags[i] = false;
-      // Set keymaps[i].to.mod's bit in mappedMod to 1;
-      mappedMod |= keymaps[i].to.mod;
+      // Set keymaps[i].to.mod's bit in mappedMod to 0 since it is regarded as being released;
+      mappedMod &= ~keymaps[i].to.mod;
       // Set keymaps[i].from.mod's bit in mappedMod to 0 if the bit is not mapped from any mod bits;
       mappedMod &= ~(keymaps[i].from.mod & ~mappedModBits);
       // Save the mapped bit
       mappedModBits |= keymaps[i].from.mod;
-
-      combinationFound = true;
     }
   }
 
@@ -141,6 +148,8 @@ int onModChanged(KeyMap keymaps[], int keymapSize, KeyPressedFlag keyPressedFlag
   bool isKeyMapped = false, mappedKeyPressed;
 
   for (int i=0; i<keymapSize; i++) {
+    if (keymaps[i].from.key != 0) { continue; }
+
     if (keymaps[i].from.mod & change) {
       // keymaps[i].from.mod changes
 

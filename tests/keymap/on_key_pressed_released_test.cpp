@@ -256,7 +256,7 @@ TEST(onKeyReleasedTest, ModKeyCombination) {
   uint8_t mod2 = MOD_LEFT_ALT;
   uint8_t key2 = 0x04;
   onKeyReleased(keymaps, keymapSize, keyPressedFlags, &mod2, &key2);
-  EXPECT_EQ(mod2, MOD_LEFT_CTRL);
+  EXPECT_EQ(mod2, 0);
   EXPECT_EQ(keyPressedFlags[0], false);
   EXPECT_EQ(keyPressedFlags[1], false);  // If the combination of left-alt and 0x04 key are released, the single 0x04 key is also released since onKeyReleased is triggered by releasing the key, but not mod.
   EXPECT_EQ(key2, 0);
