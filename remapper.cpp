@@ -59,7 +59,7 @@ void KbdRemapper::OnKeyUp(uint8_t mod, uint8_t key)
   }
 }
 
-void initRemapper(void) {
+void KbdRemapper::init(void) {
   keyboard::initKeyboard();
 
   memset(&keyPressedFlags, 0, sizeof(keyPressedFlags));

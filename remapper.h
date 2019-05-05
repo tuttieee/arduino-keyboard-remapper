@@ -10,8 +10,9 @@ class KbdRemapper : public KeyboardReportParser
 
     void OnKeyDown	(uint8_t mod, uint8_t key);
     void OnKeyUp	(uint8_t mod, uint8_t key);
-};
 
-void initRemapper(void);
+  public:
+    void init(void);
+};
 
 #endif

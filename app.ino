@@ -16,7 +16,7 @@ KbdRemapper Rmp;
 
 void setup()
 {
-  initRemapper();
+  Rmp.init();
 
   Serial.begin( 115200 );
   Serial.println("Start");
