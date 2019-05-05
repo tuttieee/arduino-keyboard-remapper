@@ -3,7 +3,7 @@
 
 #include <hidboot.h>
 
-class KbdRptParser : public KeyboardReportParser
+class KbdRemapper : public KeyboardReportParser
 {
   protected:
     void OnControlKeysChanged(uint8_t before, uint8_t after);

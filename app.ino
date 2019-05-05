@@ -12,7 +12,7 @@ USB     Usb;
 //USBHub     Hub(&Usb);
 HIDBoot<USB_HID_PROTOCOL_KEYBOARD>    HidKeyboard(&Usb);
 
-KbdRptParser Prs;
+KbdRemapper Rmp;
 
 void setup()
 {
@@ -26,7 +26,7 @@ void setup()
 
   delay( 200 );
 
-  HidKeyboard.SetReportParser(0, &Prs);
+  HidKeyboard.SetReportParser(0, &Rmp);
 }
 
 void loop()

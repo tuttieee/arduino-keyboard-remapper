@@ -15,7 +15,7 @@ const keymap::KeyMap keymaps[KEYMAP_SIZE] =
 };
 bool keyPressedFlags[KEYMAP_SIZE];  // TODO: Confirm that this occupies KEYMAP_SIZE bits, but not KEYMAP_SIZE * 8 bits for memory efficiency.
 
-void KbdRptParser::OnControlKeysChanged(uint8_t before, uint8_t after)
+void KbdRemapper::OnControlKeysChanged(uint8_t before, uint8_t after)
 {
   uint8_t mappedMod, mappedKey;
   bool isKeyMapped, mappedKeyPressed;
@@ -34,7 +34,7 @@ void KbdRptParser::OnControlKeysChanged(uint8_t before, uint8_t after)
   keyboard::reportModifier(mappedMod);
 }
 
-void KbdRptParser::OnKeyDown(uint8_t mod, uint8_t key) {
+void KbdRemapper::OnKeyDown(uint8_t mod, uint8_t key) {
   keymap::onKeyPressed(keymaps, KEYMAP_SIZE, keyPressedFlags, &mod, &key);
 
   if (key == 0) {
@@ -46,7 +46,7 @@ void KbdRptParser::OnKeyDown(uint8_t mod, uint8_t key) {
   }
 }
 
-void KbdRptParser::OnKeyUp(uint8_t mod, uint8_t key)
+void KbdRemapper::OnKeyUp(uint8_t mod, uint8_t key)
 {
   keymap::onKeyReleased(keymaps, KEYMAP_SIZE, keyPressedFlags, &mod, &key);
 
