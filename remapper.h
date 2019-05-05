@@ -3,8 +3,16 @@
 
 #include <hidboot.h>
 
+#include "keymap.h"
+
+#define KEYMAP_SIZE 6
+
 class KbdRemapper : public KeyboardReportParser
 {
+  private:
+    keymap::KeyMap *keymaps;
+    bool keyPressedFlags[KEYMAP_SIZE];
+
   protected:
     void OnControlKeysChanged(uint8_t before, uint8_t after);
 
@@ -13,6 +21,7 @@ class KbdRemapper : public KeyboardReportParser
 
   public:
     void init(void);
+    void setKeymap(keymap::KeyMap *newKeymaps);
 };
 
 #endif

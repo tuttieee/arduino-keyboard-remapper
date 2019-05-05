@@ -3,8 +3,7 @@
 #include "keymap.h"
 #include "keyboard.h"
 
-#define KEYMAP_SIZE 6
-const keymap::KeyMap keymaps[KEYMAP_SIZE] =
+const keymap::KeyMap defaultKeymaps[KEYMAP_SIZE] =
 {
   {{MOD_LEFT_CTRL, 0}, {0, 0x39}},  // left-ctrl to capsLock
   {{0, 0x39}, {MOD_LEFT_CTRL, 0}},  // capsLock to left-ctrl
@@ -13,7 +12,6 @@ const keymap::KeyMap keymaps[KEYMAP_SIZE] =
   {{MOD_LEFT_SHIFT, 0}, {MOD_LEFT_CTRL, 0}},  // left-shift to left-ctrl
   {{MOD_RIGHT_SHIFT, 0x06}, {0, 0x04}},  // R-Shift + 'c' to 'a'
 };
-bool keyPressedFlags[KEYMAP_SIZE];  // TODO: Confirm that this occupies KEYMAP_SIZE bits, but not KEYMAP_SIZE * 8 bits for memory efficiency.
 
 void KbdRemapper::OnControlKeysChanged(uint8_t before, uint8_t after)
 {
@@ -62,5 +60,10 @@ void KbdRemapper::OnKeyUp(uint8_t mod, uint8_t key)
 void KbdRemapper::init(void) {
   keyboard::initKeyboard();
 
+  setKeymap(defaultKeymaps);
   memset(&keyPressedFlags, 0, sizeof(keyPressedFlags));
+}
+
+void KbdRemapper::setKeymap(keymap::KeyMap *newKeymaps) {
+  keymaps = newKeymaps;
 }
