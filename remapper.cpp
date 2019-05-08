@@ -15,6 +15,23 @@ const keymap::KeyMap defaultKeymaps[KEYMAP_SIZE] =
   {{MOD_RIGHT_SHIFT, 0x06}, {0, 0x04}},  // R-Shift + 'c' to 'a'
 };
 
+void sortKeys(uint8_t *src, uint8_t *dst) {
+  // TODO: Replace with more efficient implementation. This is just bubble sort.
+  for (uint8_t i=0; i<6; i++) {
+    dst[i] = src[i];
+  }
+
+  for (uint8_t i=0; i<5; i++) {
+    for (uint8_t j=0; j<i; j++) {
+      if (dst[j] < dst[j+1]) {
+        uint8_t tmp = dst[j+1];
+        dst[j+1] = dst[j];
+        dst[j] = tmp;
+      }
+    }
+  }
+}
+
 void KbdRemapper::Parse(USBHID *hid, bool is_rpt_id __attribute__((unused)), uint8_t len __attribute__((unused)), uint8_t *buf) {
   // On error - return
   if (buf[2] == 1)
@@ -27,26 +44,51 @@ void KbdRemapper::Parse(USBHID *hid, bool is_rpt_id __attribute__((unused)), uin
     OnControlKeysChanged(prevState.bInfo[0x00], buf[0x00]);
   }
 
-  for (uint8_t i = 2; i < 8; i++) {
+  uint8_t sortedKeys[6];
+  sortKeys(buf+2, sortedKeys);
+
+  for (uint8_t i = 0; i < 6; i++) {
     bool down = false;
     bool up = false;
 
-    for (uint8_t j = 2; j < 8; j++) {
-      if (buf[i] == prevState.bInfo[j] && buf[i] != 1)
+    for (uint8_t j = 0; j < 6; j++) {
+      if (sortedKeys[i] == prevState.bInfo[j+2] && buf[i] != 1)
         down = true;
-      if (buf[j] == prevState.bInfo[i] && prevState.bInfo[i] != 1)
+      if (buf[j] == prevState.bInfo[i+2] && prevState.bInfo[i+2] != 1)
         up = true;
     }
     if (!down) {
-      HandleLockingKeys(hid, buf[i]);
-      OnKeyDown(*buf, buf[i]);
+      // HandleLockingKeys(hid, buf[i]);
+      // OnKeyDown(*buf, buf[i]);
+      OnKeyChanged(*buf, sortedKeys[i], true, prevState.bInfo+2, sortedKeys);
     }
     if (!up)
-      OnKeyUp(prevState.bInfo[0], prevState.bInfo[i]);
+      // OnKeyUp(prevState.bInfo[0], prevState.bInfo[i]);
+      OnKeyChanged(prevState.bInfo[0], prevState.bInfo[i+2], false, prevState.bInfo+2, sortedKeys);
   }
-  for (uint8_t i = 0; i < 8; i++)
+  for (uint8_t i = 0; i < 2; i++)
     prevState.bInfo[i] = buf[i];
+  for (uint8_t i = 0; i < 6; i++)
+    prevState.bInfo[i+2] = sortedKeys[i];
 };
+
+void KbdRemapper::OnKeyChanged(uint8_t mod, uint8_t key, bool pressed, uint8_t *sortedKeysBefore, uint8_t *sortedKeysAfter) {
+  printMod(mod);
+  Serial.print(" ");
+  for (uint8_t i=0; i<6; i++) {
+    PrintHex<uint8_t>(sortedKeysBefore[i], 0x80);
+    Serial.print(" ");
+  }
+  Serial.print("-> ");
+  for (uint8_t i=0; i<6; i++) {
+    PrintHex<uint8_t>(sortedKeysAfter[i], 0x80);
+    Serial.print(" ");
+  }
+  Serial.print(" (");
+  if (pressed) Serial.print("DN "); else Serial.print("UP ");
+  PrintHex<uint8_t>(key, 0x80);
+  Serial.println(")");
+}
 
 void KbdRemapper::OnControlKeysChanged(uint8_t before, uint8_t after) {
   Serial.print("MO ");

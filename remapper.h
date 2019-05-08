@@ -16,7 +16,10 @@ class KbdRemapper : public KeyboardReportParser
     void Parse(USBHID *hid, bool is_rpt_id __attribute__((unused)), uint8_t len __attribute__((unused)), uint8_t *buf);
     void printMod(uint8_t m);
 
+    void OnKeyChanged(uint8_t mod, uint8_t key, bool pressed, uint8_t *keysBefore, uint8_t *keysAfter);
+
   protected:
+
     void OnControlKeysChanged(uint8_t before, uint8_t after);
 
     void OnKeyDown	(uint8_t mod, uint8_t key);
