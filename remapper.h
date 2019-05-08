@@ -13,6 +13,8 @@ class KbdRemapper : public KeyboardReportParser
     keymap::KeyMap *keymaps;
     bool keyPressedFlags[KEYMAP_SIZE];
 
+    void printMod(uint8_t m);
+
   protected:
     void OnControlKeysChanged(uint8_t before, uint8_t after);
 

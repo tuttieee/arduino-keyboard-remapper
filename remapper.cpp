@@ -1,3 +1,5 @@
+#include <Usb.h>
+
 #include "remapper.h"
 
 #include "keymap.h"
@@ -13,8 +15,13 @@ const keymap::KeyMap defaultKeymaps[KEYMAP_SIZE] =
   {{MOD_RIGHT_SHIFT, 0x06}, {0, 0x04}},  // R-Shift + 'c' to 'a'
 };
 
-void KbdRemapper::OnControlKeysChanged(uint8_t before, uint8_t after)
-{
+void KbdRemapper::OnControlKeysChanged(uint8_t before, uint8_t after) {
+  Serial.print("MO ");
+  printMod(before);
+  Serial.print(" -> ");
+  printMod(after);
+  Serial.print("\n");
+
   uint8_t mappedMod, mappedKey;
   bool isKeyMapped, mappedKeyPressed;
 
@@ -33,6 +40,12 @@ void KbdRemapper::OnControlKeysChanged(uint8_t before, uint8_t after)
 }
 
 void KbdRemapper::OnKeyDown(uint8_t mod, uint8_t key) {
+  Serial.print("DN ");
+  printMod(mod);
+  Serial.print(" ");
+  PrintHex<uint8_t>(key, 0x80);
+  Serial.print("\n");
+
   keymap::onKeyPressed(keymaps, KEYMAP_SIZE, keyPressedFlags, &mod, &key);
 
   if (key == 0) {
@@ -44,8 +57,13 @@ void KbdRemapper::OnKeyDown(uint8_t mod, uint8_t key) {
   }
 }
 
-void KbdRemapper::OnKeyUp(uint8_t mod, uint8_t key)
-{
+void KbdRemapper::OnKeyUp(uint8_t mod, uint8_t key) {
+  Serial.print("UP ");
+  printMod(mod);
+  Serial.print(" ");
+  PrintHex<uint8_t>(key, 0x80);
+  Serial.print("\n");
+
   keymap::onKeyReleased(keymaps, KEYMAP_SIZE, keyPressedFlags, &mod, &key);
 
   if (key == 0) {
@@ -66,4 +84,21 @@ void KbdRemapper::init(void) {
 
 void KbdRemapper::setKeymap(keymap::KeyMap *newKeymaps) {
   keymaps = newKeymaps;
+}
+
+void KbdRemapper::printMod(uint8_t m) {
+  MODIFIERKEYS mod;
+  *((uint8_t*)&mod) = m;
+
+  Serial.print((mod.bmLeftCtrl   == 1) ? "C" : "_");
+  Serial.print((mod.bmLeftShift  == 1) ? "S" : "_");
+  Serial.print((mod.bmLeftAlt    == 1) ? "A" : "_");
+  Serial.print((mod.bmLeftGUI    == 1) ? "G" : "_");
+
+  Serial.print(" ");
+
+  Serial.print((mod.bmRightCtrl   == 1) ? "C" : "_");
+  Serial.print((mod.bmRightShift  == 1) ? "S" : "_");
+  Serial.print((mod.bmRightAlt    == 1) ? "A" : "_");
+  Serial.print((mod.bmRightGUI    == 1) ? "G" : "_");
 }
