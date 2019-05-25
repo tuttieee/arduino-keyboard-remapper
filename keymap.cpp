@@ -1,7 +1,76 @@
+#include <string.h>
 #include "keymap.h"
+
+#include <iostream>
 
 namespace keymap {
 
+void onKeysChanged(KeyMap keymaps[], int keymapSize, KeyPressedFlag keyPressedFlags[], uint8_t mod, uint8_t* sortedKeys, bool* isMappedModChanged, uint8_t* mappedMod, uint8_t* pressedKeys, uint8_t* releasedKeys) {
+  uint8_t pressedKeySetIdx = 0;
+  uint8_t releasedKeySetIdx = 0;
+
+  memset(pressedKeys, 0, MAPPED_KEYS_NUM * sizeof(uint8_t));
+  memset(releasedKeys, 0, MAPPED_KEYS_NUM * sizeof(uint8_t));
+
+  *mappedMod = mod;
+  *isMappedModChanged = false;
+  uint8_t mappedModBits = 0;
+
+  // Already mapped mods are ignored
+  for (int i=0; i<keymapSize; i++) {
+    if (keyPressedFlags[i]) {
+      *mappedMod &= ~keymaps[i].src.mod;
+    }
+  }
+
+  for (uint8_t iKeymap = 0; iKeymap < keymapSize; iKeymap++) {
+    if ((keymaps[iKeymap].src.mod == 0 || keymaps[iKeymap].src.mod == mod)
+        && keymaps[iKeymap].src.keys[0] == sortedKeys[0]
+        && keymaps[iKeymap].src.keys[1] == sortedKeys[1]
+        && 0 == sortedKeys[2]
+        && 0 == sortedKeys[3]
+        && 0 == sortedKeys[4]
+        && 0 == sortedKeys[5]) {
+      if (keyPressedFlags[iKeymap] == false) {
+        // Newly pressed
+        if (keymaps[iKeymap].dst.key != 0) {
+          pressedKeys[pressedKeySetIdx++] = keymaps[iKeymap].dst.key;
+        }
+        if (keymaps[iKeymap].dst.mod != 0) {
+          // Set keymaps[i].dst.mod's bit in mappedMod to 1;
+          *mappedMod |= keymaps[iKeymap].dst.mod;
+          // Set keymaps[i].src.mod's bit in mappedMod to 0 if the bit is not mapped from any mod bits;
+          *mappedMod &= ~(keymaps[iKeymap].src.mod & ~mappedModBits);
+          // Save the mapped bit
+          mappedModBits |= keymaps[iKeymap].src.mod;
+
+          *isMappedModChanged = true;
+        }
+      }
+      keyPressedFlags[iKeymap] = true;
+    } else {
+      if (keyPressedFlags[iKeymap] == true) {
+        // Newly released
+        if (keymaps[iKeymap].dst.key != 0) {
+          releasedKeys[releasedKeySetIdx++] = keymaps[iKeymap].dst.key;
+        }
+        if (keymaps[iKeymap].dst.mod != 0) {
+          // Set keymaps[i].dst.mod's bit in mappedMod to 0 since it is regarded as being released;
+          *mappedMod &= ~keymaps[iKeymap].dst.mod;
+          // Set keymaps[i].src.mod's bit in mappedMod to 0 if the bit is not mapped from any mod bits;
+          *mappedMod &= ~(keymaps[iKeymap].src.mod & ~mappedModBits);
+          // Save the mapped bit
+          mappedModBits |= keymaps[iKeymap].src.mod;
+
+          *isMappedModChanged = true;
+        }
+      }
+      keyPressedFlags[iKeymap] = false;
+    }
+  }
+}
+
+/*
 void onKeyPressed(KeyMap keymaps[], int keymapSize, KeyPressedFlag keyPressedFlags[], uint8_t* mod, uint8_t* key) {
   uint8_t mappedMod = *mod;
   uint8_t mappedModBits = 0;
@@ -137,7 +206,7 @@ void onKeyReleased(KeyMap keymaps[], int keymapSize, KeyPressedFlag keyPressedFl
   *key = mappedKey;
   *mod = mappedMod;
 }
-
+*/
 int onModChanged(KeyMap keymaps[], int keymapSize, KeyPressedFlag keyPressedFlags[], uint8_t before, uint8_t after, uint8_t* _mappedMod, bool* _isKeyMapped, uint8_t* _mappedKey, bool* _mappedKeyPressed) {
   uint8_t change = before ^ after;
   if (change == 0) { return 0; }
@@ -148,9 +217,9 @@ int onModChanged(KeyMap keymaps[], int keymapSize, KeyPressedFlag keyPressedFlag
   bool isKeyMapped = false, mappedKeyPressed;
 
   for (int i=0; i<keymapSize; i++) {
-    if (keymaps[i].from.key != 0) { continue; }
+    if (keymaps[i].src.keys[0] != 0 || keymaps[i].src.keys[1] != 0) { continue; }
 
-    if (keymaps[i].from.mod & change) {
+    if (keymaps[i].src.mod & change) {
       // keymaps[i].from.mod changes
 
       if (after & change) {
@@ -158,34 +227,34 @@ int onModChanged(KeyMap keymaps[], int keymapSize, KeyPressedFlag keyPressedFlag
         keyPressedFlags[i] = true;
 
         // 'To' key is added. This assumes one 'from' mod is mapped to at most 1 'to' keys. If there are multiple 'to' keys, the only last one affects.
-        if (keymaps[i].to.key != 0) {
+        if (keymaps[i].dst.key != 0) {
           isKeyMapped = true;
-          mappedKey = keymaps[i].to.key;
+          mappedKey = keymaps[i].dst.key;
           mappedKeyPressed = true;
         }
 
         // Set mappedMod's target bit to 1
-        mappedMod |= keymaps[i].to.mod;
+        mappedMod |= keymaps[i].dst.mod;
       } else {
         // keymaps[i].from.mod UP (newly set to 0)
         keyPressedFlags[i] = false;
 
         // 'To' key is released.
-        if (keymaps[i].to.key != 0) {
+        if (keymaps[i].dst.key != 0) {
           isKeyMapped = true;
-          mappedKey = keymaps[i].to.key;
+          mappedKey = keymaps[i].dst.key;
           mappedKeyPressed = false;
         }
 
         // Set mappedMod's target bit to 0
-        mappedMod &= ~keymaps[i].to.mod;
+        mappedMod &= ~keymaps[i].dst.mod;
       }
 
       // Set mappedMod's source bit to 0 if the bit is not mapped from any mod bits;
-      mappedMod &= ~(keymaps[i].from.mod & ~mappedModBits);
+      mappedMod &= ~(keymaps[i].src.mod & ~mappedModBits);
 
       // Save mapping bit
-      mappedModBits |= keymaps[i].from.mod;
+      mappedModBits |= keymaps[i].src.mod;
     }
   }
 

@@ -15,19 +15,28 @@
 
 namespace keymap {
 
+#define MAPPED_KEYS_NUM 6
+
+#define KEYS_NUM 2
+
+typedef struct {
+  uint8_t mod;
+  uint8_t keys[KEYS_NUM];
+} SrcKeyState;
 typedef struct {
   uint8_t mod;
   uint8_t key;
-} KeyCode;
+} DstKeyState;
 typedef struct {
-  KeyCode from;
-  KeyCode to;
+  SrcKeyState src;
+  DstKeyState dst;
 } KeyMap;
 
 typedef bool KeyPressedFlag;
 
-void onKeyPressed(KeyMap keymaps[], int keymapSize, KeyPressedFlag keyPressedFlags[], uint8_t* mod, uint8_t* key);
-void onKeyReleased(KeyMap keymaps[], int keymapSize, KeyPressedFlag keyPressedFlags[], uint8_t* mod, uint8_t* key);
+// void onKeyPressed(KeyMap keymaps[], int keymapSize, KeyPressedFlag keyPressedFlags[], uint8_t* mod, uint8_t* keys, uint8_t *mappedKey);
+// void onKeyReleased(KeyMap keymaps[], int keymapSize, KeyPressedFlag keyPressedFlags[], uint8_t* mod, uint8_t* keys, uint8_t *mappedKey);
+void onKeysChanged(KeyMap keymaps[], int keymapSize, KeyPressedFlag keyPressedFlags[], uint8_t mod, uint8_t* sortedKeys, bool* isMappedModChanged, uint8_t* mappedMod, uint8_t* pressedKeys, uint8_t* releasedKeys);
 int onModChanged(KeyMap keymaps[], int keymapSize, KeyPressedFlag keyPressedFlags[], uint8_t before, uint8_t after, uint8_t* mappedMod, bool* isKeyMapped, uint8_t* mappedKey, bool* mappedKeyPressed);
 
 }

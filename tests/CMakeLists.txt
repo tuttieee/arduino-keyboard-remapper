@@ -45,17 +45,25 @@ add_executable(keyreport-test keyreport_test.cpp ../keyreport.cpp)
 target_link_libraries(keyreport-test gtest_main)
 add_test(NAME keyreport-test COMMAND $<TARGET_FILE:keyreport-test>)
 
-add_executable(keymap-test
+add_executable(keymap-on_keys_changed-test
   keymap/utils.cpp
-  keymap/on_key_pressed_released_test.cpp
-  keymap/on_mod_changed_test.cpp
+  keymap/on_keys_changed_tests/caps_ctrl_test.cpp
+  keymap/on_keys_changed_tests/single_key_test.cpp
   ../keymap.cpp)
-target_link_libraries(keymap-test gtest_main)
-add_test(NAME keymap-test COMMAND $<TARGET_FILE:keymap-test>)
+target_link_libraries(keymap-on_keys_changed-test gtest_main)
+add_test(NAME keymap-on_keys_changed-test COMMAND $<TARGET_FILE:keymap-on_keys_changed-test>)
 
-add_executable(mod-key-combo-test
-  keymap/utils.cpp
-  keymap/mod_key_combo_test.cpp
-  ../keymap.cpp)
-target_link_libraries(mod-key-combo-test gtest_main)
-add_test(NAME mod-key-combo-test COMMAND $<TARGET_FILE:mod-key-combo-test>)
+#add_executable(keymap-test
+#  keymap/utils.cpp
+#  keymap/on_key_pressed_released_test.cpp
+#  keymap/on_mod_changed_test.cpp
+#  ../keymap.cpp)
+#target_link_libraries(keymap-test gtest_main)
+#add_test(NAME keymap-test COMMAND $<TARGET_FILE:keymap-test>)
+#
+#add_executable(mod-key-combo-test
+#  keymap/utils.cpp
+#  keymap/mod_key_combo_test.cpp
+#  ../keymap.cpp)
+#target_link_libraries(mod-key-combo-test gtest_main)
+#add_test(NAME mod-key-combo-test COMMAND $<TARGET_FILE:mod-key-combo-test>)
