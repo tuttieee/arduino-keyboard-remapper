@@ -7,12 +7,12 @@
 
 const keymap::KeyMap defaultKeymaps[KEYMAP_SIZE] =
 {
-  {{MOD_LEFT_CTRL, 0}, {0, 0x39}},  // left-ctrl to capsLock
-  {{0, 0x39}, {MOD_LEFT_CTRL, 0}},  // capsLock to left-ctrl
-  {{0, 0x04}, {0, 0x05}},  // 'a' to 'b'
-  {{0, 0x05}, {0, 0x04}},  // 'b' to 'a'
-  {{MOD_LEFT_SHIFT, 0}, {MOD_LEFT_CTRL, 0}},  // left-shift to left-ctrl
-  {{MOD_RIGHT_SHIFT, 0x06}, {0, 0x04}},  // R-Shift + 'c' to 'a'
+  {{MOD_LEFT_CTRL, {0, 0}}, {0, 0x39}},  // left-ctrl to capsLock
+  {{0, {0x39, 0}}, {MOD_LEFT_CTRL, 0}},  // capsLock to left-ctrl
+  {{0, {0x04, 0}}, {0, 0x05}},  // 'a' to 'b'
+  {{0, {0x05, 0}}, {0, 0x04}},  // 'b' to 'a'
+  {{MOD_LEFT_SHIFT, {0, 0}}, {MOD_LEFT_CTRL, 0}},  // left-shift to left-ctrl
+  {{MOD_RIGHT_SHIFT, {0x06, 0}}, {0, 0x04}},  // R-Shift + 'c' to 'a'
 };
 
 void sortKeys(uint8_t *src, uint8_t *dst) {
@@ -21,9 +21,13 @@ void sortKeys(uint8_t *src, uint8_t *dst) {
     dst[i] = src[i];
   }
 
-  for (uint8_t i=0; i<5; i++) {
-    for (uint8_t j=0; j<i; j++) {
-      if (dst[j] < dst[j+1]) {
+  for (uint8_t i = 0; i < 6; i++) {
+    if (dst[i] == 0) {
+      continue;
+    }
+
+    for (uint8_t j = 0; j < i; j++) {
+      if (dst[j+1] != 0 && dst[j] > dst[j+1]) {
         uint8_t tmp = dst[j+1];
         dst[j+1] = dst[j];
         dst[j] = tmp;
@@ -47,24 +51,39 @@ void KbdRemapper::Parse(USBHID *hid, bool is_rpt_id __attribute__((unused)), uin
   uint8_t sortedKeys[6];
   sortKeys(buf+2, sortedKeys);
 
+  bool isMappedModChanged;
+  uint8_t mappedMod;
+  uint8_t pressedKeys[MAPPED_KEYS_NUM];
+  uint8_t releasedKeys[MAPPED_KEYS_NUM];
+  keymap::onKeysChanged(keymaps, KEYMAP_SIZE, keyPressedFlags, *buf, prevState.bInfo+2, sortedKeys, &isMappedModChanged, &mappedMod, pressedKeys, releasedKeys);
+  if (isMappedModChanged) {
+    keyboard::reportModifier(mappedMod);
+  }
+  for (uint8_t i = 0; i < MAPPED_KEYS_NUM; i++) {
+    if (pressedKeys[i] != 0) {
+      keyboard::reportPress(mappedMod, pressedKeys[i]);
+    }
+    if (releasedKeys[i] != 0) {
+      keyboard::reportRelease(mappedMod, releasedKeys[i]);
+    }
+  }
+
+  // Debug print
   for (uint8_t i = 0; i < 6; i++) {
     bool down = false;
     bool up = false;
 
     for (uint8_t j = 0; j < 6; j++) {
-      if (sortedKeys[i] == prevState.bInfo[j+2] && buf[i] != 1)
+      if (sortedKeys[i] == prevState.bInfo[j+2] && sortedKeys[i] != 1)
         down = true;
-      if (buf[j] == prevState.bInfo[i+2] && prevState.bInfo[i+2] != 1)
+      if (sortedKeys[j] == prevState.bInfo[i+2] && prevState.bInfo[i+2] != 1)
         up = true;
     }
     if (!down) {
-      // HandleLockingKeys(hid, buf[i]);
-      // OnKeyDown(*buf, buf[i]);
-      OnKeyChanged(*buf, sortedKeys[i], true, prevState.bInfo+2, sortedKeys);
+      debugPrint(*buf, sortedKeys[i], true, prevState.bInfo+2, sortedKeys);
     }
     if (!up)
-      // OnKeyUp(prevState.bInfo[0], prevState.bInfo[i]);
-      OnKeyChanged(prevState.bInfo[0], prevState.bInfo[i+2], false, prevState.bInfo+2, sortedKeys);
+      debugPrint(prevState.bInfo[0], prevState.bInfo[i+2], false, prevState.bInfo+2, sortedKeys);
   }
   for (uint8_t i = 0; i < 2; i++)
     prevState.bInfo[i] = buf[i];
@@ -72,7 +91,7 @@ void KbdRemapper::Parse(USBHID *hid, bool is_rpt_id __attribute__((unused)), uin
     prevState.bInfo[i+2] = sortedKeys[i];
 };
 
-void KbdRemapper::OnKeyChanged(uint8_t mod, uint8_t key, bool pressed, uint8_t *sortedKeysBefore, uint8_t *sortedKeysAfter) {
+void KbdRemapper::debugPrint(uint8_t mod, uint8_t key, bool pressed, uint8_t *sortedKeysBefore, uint8_t *sortedKeysAfter) {
   printMod(mod);
   Serial.print(" ");
   for (uint8_t i=0; i<6; i++) {
@@ -121,7 +140,7 @@ void KbdRemapper::OnKeyDown(uint8_t mod, uint8_t key) {
   PrintHex<uint8_t>(key, 0x80);
   Serial.print("\n");
 
-  keymap::onKeyPressed(keymaps, KEYMAP_SIZE, keyPressedFlags, &mod, &key);
+  // keymap::onKeyPressed(keymaps, KEYMAP_SIZE, keyPressedFlags, &mod, keys);
 
   if (key == 0) {
     if (mod > 0) {
@@ -139,7 +158,7 @@ void KbdRemapper::OnKeyUp(uint8_t mod, uint8_t key) {
   PrintHex<uint8_t>(key, 0x80);
   Serial.print("\n");
 
-  keymap::onKeyReleased(keymaps, KEYMAP_SIZE, keyPressedFlags, &mod, &key);
+  // keymap::onKeyReleased(keymaps, KEYMAP_SIZE, keyPressedFlags, &mod, keys);
 
   if (key == 0) {
     if (mod > 0) {

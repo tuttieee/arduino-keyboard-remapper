@@ -84,7 +84,6 @@ void onKeysChanged(KeyMap keymaps[], int keymapSize, KeyPressedFlag keyPressedFl
       }
 
       if (!down) {
-
         pressedKeys[pressedKeySetIdx++] = sortedKeysAfter[i];
       }
       if (!up) {
