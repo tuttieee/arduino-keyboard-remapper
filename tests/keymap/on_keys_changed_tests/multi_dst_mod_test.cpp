@@ -25,9 +25,8 @@ TEST_F(MultiDstModTest, ) {
   bool isMappedModChanged;
   uint8_t mappedKeys[MAPPED_KEYS_NUM];
 
-  uint8_t sortedKeysBefore0[] = {0, 0, 0, 0, 0, 0};
   uint8_t sortedKeysAfter0[] = {0x39, 0, 0, 0, 0, 0};
-  onKeysChanged(keymaps, keymapSize, keyPressedFlags, mod, sortedKeysBefore0, sortedKeysAfter0, &isMappedModChanged, &mappedMod, mappedKeys);
+  onKeysChanged(keymaps, keymapSize, keyPressedFlags, mod, sortedKeysAfter0, &isMappedModChanged, &mappedMod, mappedKeys);
   EXPECT_EQ(mappedMod, MOD_LEFT_CTRL);
   EXPECT_EQ(isMappedModChanged, true);
   for (int i = 0; i < MAPPED_KEYS_NUM; i++) {

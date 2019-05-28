@@ -7,9 +7,6 @@ namespace keyboard {
 
 void initKeyboard(void);
 void updateKeys(uint8_t mod, uint8_t keys[]);
-void reportPress(uint8_t mod, uint8_t key);
-void reportRelease(uint8_t mod, uint8_t key);
-void reportModifier(uint8_t mod);
 void reportReleaseAll(void);
 
 }

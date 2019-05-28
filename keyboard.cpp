@@ -55,23 +55,6 @@ void keyboard::updateKeys(uint8_t mod, uint8_t keys[]) {
   _sendReport();
 }
 
-void keyboard::reportPress(uint8_t mod, uint8_t key)
-{
-  keyreport::setKeyPressed(&keyReport, mod, key);
-  _sendReport();
-}
-
-void keyboard::reportRelease(uint8_t mod, uint8_t key)
-{
-  keyreport::setKeyReleased(&keyReport, mod, key);
-  _sendReport();
-}
-
-void keyboard::reportModifier(uint8_t mod) {
-  keyReport.modifiers = mod;
-  _sendReport();
-}
-
 void keyboard::reportReleaseAll(void)
 {
   keyreport::releaseAllKey(&keyReport);

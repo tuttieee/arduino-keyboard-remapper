@@ -43,132 +43,47 @@ void KbdRemapper::Parse(USBHID *hid, bool is_rpt_id __attribute__((unused)), uin
 
   //KBDINFO       *pki = (KBDINFO*)buf;
 
-  // provide event for changed control key state
-  if (prevState.bInfo[0x00] != buf[0x00]) {
-    OnControlKeysChanged(prevState.bInfo[0x00], buf[0x00]);
-  }
-
   uint8_t sortedKeys[6];
   sortKeys(buf+2, sortedKeys);
 
   bool isMappedModChanged;
   uint8_t mappedMod;
   uint8_t mappedKeys[MAPPED_KEYS_NUM];
-  keymap::onKeysChanged(keymaps, KEYMAP_SIZE, keyPressedFlags, *buf, prevState.bInfo+2, sortedKeys, &isMappedModChanged, &mappedMod, mappedKeys);
+  keymap::onKeysChanged(keymaps, KEYMAP_SIZE, keyPressedFlags, *buf, sortedKeys, &isMappedModChanged, &mappedMod, mappedKeys);
+  keyboard::updateKeys(mappedMod, mappedKeys);
 
-  if (isMappedModChanged)
-    printMod(mappedMod);
+  debugPrint(prevState.bInfo[0], *buf, prevState.bInfo+2, sortedKeys);
+
   Serial.print("Mapped keys: ");
+  printMod(mappedMod);
+  Serial.print(" ");
   for (uint8_t i=0; i<MAPPED_KEYS_NUM; i++) {
     PrintHex<uint8_t>(mappedKeys[i], 0x80);
     Serial.print(" ");
   }
   Serial.print("\n");
 
-  if (isMappedModChanged) {
-    keyboard::reportModifier(mappedMod);
-  }
-  keyboard::updateKeys(mappedMod, mappedKeys);
-
-  // Debug print
-  for (uint8_t i = 0; i < 6; i++) {
-    bool down = false;
-    bool up = false;
-
-    for (uint8_t j = 0; j < 6; j++) {
-      if (sortedKeys[i] == prevState.bInfo[j+2] && sortedKeys[i] != 1)
-        down = true;
-      if (sortedKeys[j] == prevState.bInfo[i+2] && prevState.bInfo[i+2] != 1)
-        up = true;
-    }
-    if (!down) {
-      debugPrint(*buf, sortedKeys[i], true, prevState.bInfo+2, sortedKeys);
-    }
-    if (!up)
-      debugPrint(prevState.bInfo[0], prevState.bInfo[i+2], false, prevState.bInfo+2, sortedKeys);
-  }
   for (uint8_t i = 0; i < 2; i++)
     prevState.bInfo[i] = buf[i];
   for (uint8_t i = 0; i < 6; i++)
     prevState.bInfo[i+2] = sortedKeys[i];
 };
 
-void KbdRemapper::debugPrint(uint8_t mod, uint8_t key, bool pressed, uint8_t *sortedKeysBefore, uint8_t *sortedKeysAfter) {
-  printMod(mod);
+void KbdRemapper::debugPrint(uint8_t modBefore, uint8_t modAfter, uint8_t *sortedKeysBefore, uint8_t *sortedKeysAfter) {
+  printMod(modBefore);
   Serial.print(" ");
   for (uint8_t i=0; i<6; i++) {
     PrintHex<uint8_t>(sortedKeysBefore[i], 0x80);
     Serial.print(" ");
   }
   Serial.print("-> ");
+  printMod(modAfter);
+  Serial.print(" ");
   for (uint8_t i=0; i<6; i++) {
     PrintHex<uint8_t>(sortedKeysAfter[i], 0x80);
     Serial.print(" ");
   }
-  Serial.print(" (");
-  if (pressed) Serial.print("DN "); else Serial.print("UP ");
-  PrintHex<uint8_t>(key, 0x80);
-  Serial.println(")");
-}
-
-void KbdRemapper::OnControlKeysChanged(uint8_t before, uint8_t after) {
-  Serial.print("MO ");
-  printMod(before);
-  Serial.print(" -> ");
-  printMod(after);
   Serial.print("\n");
-
-  uint8_t mappedMod, mappedKey;
-  bool isKeyMapped, mappedKeyPressed;
-
-  int mappingOccurred = keymap::onModChanged(keymaps, KEYMAP_SIZE, keyPressedFlags, before, after, &mappedMod, &isKeyMapped, &mappedKey, &mappedKeyPressed);
-  if (mappingOccurred == 0) { return; }
-
-  if (isKeyMapped) {
-    if (mappedKeyPressed) {
-      keyboard::reportPress(mappedMod, mappedKey);
-    } else {
-      keyboard::reportRelease(mappedMod, mappedKey);
-    }
-  }
-
-  keyboard::reportModifier(mappedMod);
-}
-
-void KbdRemapper::OnKeyDown(uint8_t mod, uint8_t key) {
-  Serial.print("DN ");
-  printMod(mod);
-  Serial.print(" ");
-  PrintHex<uint8_t>(key, 0x80);
-  Serial.print("\n");
-
-  // keymap::onKeyPressed(keymaps, KEYMAP_SIZE, keyPressedFlags, &mod, keys);
-
-  if (key == 0) {
-    if (mod > 0) {
-      keyboard::reportModifier(mod);
-    }
-  } else {
-    keyboard::reportPress(mod, key);
-  }
-}
-
-void KbdRemapper::OnKeyUp(uint8_t mod, uint8_t key) {
-  Serial.print("UP ");
-  printMod(mod);
-  Serial.print(" ");
-  PrintHex<uint8_t>(key, 0x80);
-  Serial.print("\n");
-
-  // keymap::onKeyReleased(keymaps, KEYMAP_SIZE, keyPressedFlags, &mod, keys);
-
-  if (key == 0) {
-    if (mod > 0) {
-      keyboard::reportModifier(mod);
-    }
-  } else {
-    keyboard::reportRelease(mod, key);
-  }
 }
 
 void KbdRemapper::init(void) {
