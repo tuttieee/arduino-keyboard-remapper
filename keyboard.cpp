@@ -50,6 +50,11 @@ void keyboard::initKeyboard(void)
   keyreport::releaseAllKey(&keyReport);
 }
 
+void keyboard::updateKeys(uint8_t mod, uint8_t keys[]) {
+  keyreport::setKeys(&keyReport, mod, keys);
+  _sendReport();
+}
+
 void keyboard::reportPress(uint8_t mod, uint8_t key)
 {
   keyreport::setKeyPressed(&keyReport, mod, key);

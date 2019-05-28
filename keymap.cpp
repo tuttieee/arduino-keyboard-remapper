@@ -39,14 +39,10 @@ void removeKeys(KeyMap keymap, uint8_t keys[]) {
   }
 }
 
-void onKeysChanged(KeyMap keymaps[], int keymapSize, KeyPressedFlag keyPressedFlags[], uint8_t mod, uint8_t* sortedKeysBefore, uint8_t* sortedKeysAfter, bool* isMappedModChanged, uint8_t* mappedMod, uint8_t* pressedKeys, uint8_t* releasedKeys) {
-  uint8_t pressedKeySetIdx = 0;
-  uint8_t releasedKeySetIdx = 0;
+void onKeysChanged(KeyMap keymaps[], int keymapSize, KeyPressedFlag keyPressedFlags[], uint8_t mod, uint8_t* sortedKeysBefore, uint8_t* sortedKeysAfter, bool* isMappedModChanged, uint8_t* mappedMod, uint8_t* mappedKeys) {
+  memset(mappedKeys, 0, MAPPED_KEYS_NUM * sizeof(uint8_t));
 
-  memset(pressedKeys, 0, MAPPED_KEYS_NUM * sizeof(uint8_t));
-  memset(releasedKeys, 0, MAPPED_KEYS_NUM * sizeof(uint8_t));
-
-  bool isMappedKeyChanged = false;
+  uint8_t mappedKeySetIdx = 0;
 
   *mappedMod = mod;
   *isMappedModChanged = false;
@@ -56,19 +52,6 @@ void onKeysChanged(KeyMap keymaps[], int keymapSize, KeyPressedFlag keyPressedFl
   for (int i=0; i<keymapSize; i++) {
     if (keyPressedFlags[i]) {
       *mappedMod &= ~keymaps[i].src.mod;
-    }
-  }
-
-  for (uint8_t i = 0; i < 6; i++) {
-    bool up = false;
-
-    for (uint8_t j = 0; j < 6; j++) {
-      if (sortedKeysAfter[j] == sortedKeysBefore[i] && sortedKeysBefore[i] != 1)
-        up = true;
-    }
-
-    if (!up) {
-      releasedKeys[releasedKeySetIdx++] = sortedKeysBefore[i];
     }
   }
 
@@ -83,8 +66,7 @@ void onKeysChanged(KeyMap keymaps[], int keymapSize, KeyPressedFlag keyPressedFl
       if (keyPressedFlags[iKeymap] == false) {
         // Newly pressed
         if (keymaps[iKeymap].dst.key != 0) {
-          pressedKeys[pressedKeySetIdx++] = keymaps[iKeymap].dst.key;
-          isMappedKeyChanged = true;
+          mappedKeys[mappedKeySetIdx++] = keymaps[iKeymap].dst.key;
         }
       }
 
@@ -104,24 +86,14 @@ void onKeysChanged(KeyMap keymaps[], int keymapSize, KeyPressedFlag keyPressedFl
 
       keyPressedFlags[iKeymap] = true;
     } else {
-      removeKeys(keymaps[iKeymap], releasedKeys);
-
-      if (keyPressedFlags[iKeymap] == true) {
-        // Newly released
-        if (keymaps[iKeymap].dst.key != 0) {
-          releasedKeys[releasedKeySetIdx++] = keymaps[iKeymap].dst.key;
-          isMappedKeyChanged = true;
-        }
-      }
-
       // mappedMod is set even if the keymap is already matched
       if (keymaps[iKeymap].dst.mod != 0) {
-        // Set keymaps[i].dst.mod's bit in mappedMod to 0 since it is regarded as being released;
-        *mappedMod &= ~keymaps[iKeymap].dst.mod;
-        // Set keymaps[i].src.mod's bit in mappedMod to 0 if the bit is not mapped from any mod bits;
-        *mappedMod &= ~(keymaps[iKeymap].src.mod & ~mappedModBits);
-        // Save the mapped bit
-        mappedModBits |= keymaps[iKeymap].src.mod;
+        // // Set keymaps[i].dst.mod's bit in mappedMod to 0 since it is regarded as being released;
+        // *mappedMod &= ~keymaps[iKeymap].dst.mod;
+        // // Set keymaps[i].src.mod's bit in mappedMod to 0 if the bit is not mapped from any mod bits;
+        // *mappedMod &= ~(keymaps[iKeymap].src.mod & ~mappedModBits);
+        // // Save the mapped bit
+        // mappedModBits |= keymaps[iKeymap].src.mod;
 
         if (keyPressedFlags[iKeymap] == true) {
           *isMappedModChanged = true;
@@ -132,7 +104,7 @@ void onKeysChanged(KeyMap keymaps[], int keymapSize, KeyPressedFlag keyPressedFl
     }
   }
 
-  memcpy(pressedKeys  + pressedKeySetIdx,  keyPool, sizeof(uint8_t) * (6 - pressedKeySetIdx));
+  memcpy(mappedKeys + mappedKeySetIdx, keyPool, sizeof(uint8_t) * (6 - mappedKeySetIdx));
 }
 
 /*

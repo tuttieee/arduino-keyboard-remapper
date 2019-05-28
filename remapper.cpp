@@ -53,20 +53,22 @@ void KbdRemapper::Parse(USBHID *hid, bool is_rpt_id __attribute__((unused)), uin
 
   bool isMappedModChanged;
   uint8_t mappedMod;
-  uint8_t pressedKeys[MAPPED_KEYS_NUM];
-  uint8_t releasedKeys[MAPPED_KEYS_NUM];
-  keymap::onKeysChanged(keymaps, KEYMAP_SIZE, keyPressedFlags, *buf, prevState.bInfo+2, sortedKeys, &isMappedModChanged, &mappedMod, pressedKeys, releasedKeys);
+  uint8_t mappedKeys[MAPPED_KEYS_NUM];
+  keymap::onKeysChanged(keymaps, KEYMAP_SIZE, keyPressedFlags, *buf, prevState.bInfo+2, sortedKeys, &isMappedModChanged, &mappedMod, mappedKeys);
+
+  if (isMappedModChanged)
+    printMod(mappedMod);
+  Serial.print("Mapped keys: ");
+  for (uint8_t i=0; i<MAPPED_KEYS_NUM; i++) {
+    PrintHex<uint8_t>(mappedKeys[i], 0x80);
+    Serial.print(" ");
+  }
+  Serial.print("\n");
+
   if (isMappedModChanged) {
     keyboard::reportModifier(mappedMod);
   }
-  for (uint8_t i = 0; i < MAPPED_KEYS_NUM; i++) {
-    if (pressedKeys[i] != 0) {
-      keyboard::reportPress(mappedMod, pressedKeys[i]);
-    }
-    if (releasedKeys[i] != 0) {
-      keyboard::reportRelease(mappedMod, releasedKeys[i]);
-    }
-  }
+  keyboard::updateKeys(mappedMod, mappedKeys);
 
   // Debug print
   for (uint8_t i = 0; i < 6; i++) {

@@ -6,7 +6,7 @@
 namespace keyreport {
 
 //  Low level key report: up to KEY_REPORT_KEYS_NUM keys and shift, ctrl etc at once
-#define KEY_REPORT_KEYS_NUM 8
+#define KEY_REPORT_KEYS_NUM 6
 typedef struct
 {
   uint8_t modifiers;
@@ -15,6 +15,7 @@ typedef struct
 } KeyReport;
 
 void releaseAllKey(KeyReport* keyReport);
+void setKeys(KeyReport* keyReport, uint8_t mod, uint8_t keys[]);
 void setKeyPressed(KeyReport* keyReport, uint8_t mod, uint8_t key);
 void setKeyReleased(KeyReport* keyReport, uint8_t mod, uint8_t key);
 }
