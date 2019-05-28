@@ -3,6 +3,8 @@
 
 #include "stdint.h"
 
+#include "keyreport.h"
+
 // This must match to MODIFIERKEYS defined in hidboot.h
 #define MOD_LEFT_CTRL   0b00000001
 #define MOD_LEFT_SHIFT  0b00000010
@@ -14,8 +16,6 @@
 #define MOD_RIGHT_GUI   0b10000000
 
 namespace keymap {
-
-#define MAPPED_KEYS_NUM 6
 
 #define KEYS_NUM 2
 

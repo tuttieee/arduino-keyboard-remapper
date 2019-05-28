@@ -40,7 +40,7 @@ void removeKeys(KeyMap keymap, uint8_t keys[]) {
 }
 
 void onKeysChanged(KeyMap keymaps[], int keymapSize, KeyPressedFlag keyPressedFlags[], uint8_t mod, uint8_t* sortedKeys, bool* isMappedModChanged, uint8_t* mappedMod, uint8_t* mappedKeys) {
-  memset(mappedKeys, 0, MAPPED_KEYS_NUM * sizeof(uint8_t));
+  memset(mappedKeys, 0, KEY_REPORT_KEYS_NUM * sizeof(uint8_t));
 
   uint8_t mappedKeySetIdx = 0;
 

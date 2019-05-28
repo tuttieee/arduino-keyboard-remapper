@@ -3,6 +3,7 @@
 
 #include <hidboot.h>
 
+#include "keyreport.h"
 #include "keymap.h"
 
 #define KEYMAP_SIZE 8

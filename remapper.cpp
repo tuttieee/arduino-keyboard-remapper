@@ -73,7 +73,7 @@ void KbdRemapper::Parse(USBHID *hid, bool is_rpt_id __attribute__((unused)), uin
 
   bool isMappedModChanged;
   uint8_t mappedMod;
-  uint8_t mappedKeys[MAPPED_KEYS_NUM];
+  uint8_t mappedKeys[KEY_REPORT_KEYS_NUM];
   keymap::onKeysChanged(keymaps, KEYMAP_SIZE, keyPressedFlags, *buf, sortedKeys, &isMappedModChanged, &mappedMod, mappedKeys);
   keyboard::updateKeys(mappedMod, mappedKeys);
 
