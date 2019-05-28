@@ -34,7 +34,7 @@ typedef struct {
 
 typedef bool KeyPressedFlag;
 
-void onKeysChanged(KeyMap keymaps[], int keymapSize, KeyPressedFlag keyPressedFlags[], uint8_t mod, uint8_t* sortedKeys, bool* isMappedModChanged, uint8_t* mappedMod, uint8_t* mappedKeys);
+void onKeysChanged(KeyMap keymaps[], int keymapSize, KeyPressedFlag keyPressedFlags[], uint8_t mod, uint8_t* sortedKeys, uint8_t* mappedMod, uint8_t* mappedKeys);
 
 bool isKeyIncluded(uint8_t key, uint8_t keys[]);
 bool keymapMatched(KeyMap keymap, uint8_t keys[]);

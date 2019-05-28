@@ -39,13 +39,12 @@ void removeKeys(KeyMap keymap, uint8_t keys[]) {
   }
 }
 
-void onKeysChanged(KeyMap keymaps[], int keymapSize, KeyPressedFlag keyPressedFlags[], uint8_t mod, uint8_t* sortedKeys, bool* isMappedModChanged, uint8_t* mappedMod, uint8_t* mappedKeys) {
+void onKeysChanged(KeyMap keymaps[], int keymapSize, KeyPressedFlag keyPressedFlags[], uint8_t mod, uint8_t* sortedKeys, uint8_t* mappedMod, uint8_t* mappedKeys) {
   memset(mappedKeys, 0, KEY_REPORT_KEYS_NUM * sizeof(uint8_t));
 
   uint8_t mappedKeySetIdx = 0;
 
   *mappedMod = mod;
-  *isMappedModChanged = false;
   uint8_t mappedModBits = 0;
 
   // Already mapped mods are ignored
@@ -78,28 +77,10 @@ void onKeysChanged(KeyMap keymaps[], int keymapSize, KeyPressedFlag keyPressedFl
         *mappedMod &= ~(keymaps[iKeymap].src.mod & ~mappedModBits);
         // Save the mapped bit
         mappedModBits |= keymaps[iKeymap].src.mod;
-
-        if (keyPressedFlags[iKeymap] == false) {
-          *isMappedModChanged = true;
-        }
       }
 
       keyPressedFlags[iKeymap] = true;
     } else {
-      // mappedMod is set even if the keymap is already matched
-      if (keymaps[iKeymap].dst.mod != 0) {
-        // // Set keymaps[i].dst.mod's bit in mappedMod to 0 since it is regarded as being released;
-        // *mappedMod &= ~keymaps[iKeymap].dst.mod;
-        // // Set keymaps[i].src.mod's bit in mappedMod to 0 if the bit is not mapped from any mod bits;
-        // *mappedMod &= ~(keymaps[iKeymap].src.mod & ~mappedModBits);
-        // // Save the mapped bit
-        // mappedModBits |= keymaps[iKeymap].src.mod;
-
-        if (keyPressedFlags[iKeymap] == true) {
-          *isMappedModChanged = true;
-        }
-      }
-
       keyPressedFlags[iKeymap] = false;
     }
   }
