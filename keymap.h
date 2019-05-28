@@ -39,6 +39,9 @@ typedef bool KeyPressedFlag;
 void onKeysChanged(KeyMap keymaps[], int keymapSize, KeyPressedFlag keyPressedFlags[], uint8_t mod, uint8_t* sortedKeysBefore, uint8_t* sortedKeysAfter, bool* isMappedModChanged, uint8_t* mappedMod, uint8_t* pressedKeys, uint8_t* releasedKeys);
 int onModChanged(KeyMap keymaps[], int keymapSize, KeyPressedFlag keyPressedFlags[], uint8_t before, uint8_t after, uint8_t* mappedMod, bool* isKeyMapped, uint8_t* mappedKey, bool* mappedKeyPressed);
 
+bool isKeyIncluded(uint8_t key, uint8_t keys[]);
+bool keymapMatched(KeyMap keymap, uint8_t keys[]);
+void removeKeys(KeyMap keymap, uint8_t keys[]);
 }
 
 #endif
