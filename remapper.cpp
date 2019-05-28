@@ -15,6 +15,31 @@ const keymap::KeyMap defaultKeymaps[KEYMAP_SIZE] =
   {{MOD_RIGHT_SHIFT, {0x06, 0}}, {0, 0x04}},  // R-Shift + 'c' to 'a'
 };
 
+void printMod(uint8_t m) {
+  MODIFIERKEYS mod;
+  *((uint8_t*)&mod) = m;
+
+  Serial.print((mod.bmLeftCtrl   == 1) ? "C" : "_");
+  Serial.print((mod.bmLeftShift  == 1) ? "S" : "_");
+  Serial.print((mod.bmLeftAlt    == 1) ? "A" : "_");
+  Serial.print((mod.bmLeftGUI    == 1) ? "G" : "_");
+
+  Serial.print(" ");
+
+  Serial.print((mod.bmRightCtrl   == 1) ? "C" : "_");
+  Serial.print((mod.bmRightShift  == 1) ? "S" : "_");
+  Serial.print((mod.bmRightAlt    == 1) ? "A" : "_");
+  Serial.print((mod.bmRightGUI    == 1) ? "G" : "_");
+}
+
+void debugModKeyPrint(uint8_t mod, uint8_t *keys) {
+  printMod(mod);
+  for (uint8_t i=0; i<6; i++) {
+    Serial.print(" ");
+    PrintHex<uint8_t>(keys[i], 0x80);
+  }
+}
+
 void sortKeys(uint8_t *src, uint8_t *dst) {
   // TODO: Replace with more efficient implementation. This is just bubble sort.
   for (uint8_t i=0; i<6; i++) {
@@ -52,15 +77,11 @@ void KbdRemapper::Parse(USBHID *hid, bool is_rpt_id __attribute__((unused)), uin
   keymap::onKeysChanged(keymaps, KEYMAP_SIZE, keyPressedFlags, *buf, sortedKeys, &isMappedModChanged, &mappedMod, mappedKeys);
   keyboard::updateKeys(mappedMod, mappedKeys);
 
-  debugPrint(prevState.bInfo[0], *buf, prevState.bInfo+2, sortedKeys);
-
-  Serial.print("Mapped keys: ");
-  printMod(mappedMod);
-  Serial.print(" ");
-  for (uint8_t i=0; i<MAPPED_KEYS_NUM; i++) {
-    PrintHex<uint8_t>(mappedKeys[i], 0x80);
-    Serial.print(" ");
-  }
+  debugModKeyPrint(prevState.bInfo[0], prevState.bInfo+2);
+  Serial.print(" -> ");
+  debugModKeyPrint(*buf, sortedKeys);
+  Serial.print(" / Mapped keys: ");
+  debugModKeyPrint(mappedMod, mappedKeys);
   Serial.print("\n");
 
   for (uint8_t i = 0; i < 2; i++)
@@ -68,23 +89,6 @@ void KbdRemapper::Parse(USBHID *hid, bool is_rpt_id __attribute__((unused)), uin
   for (uint8_t i = 0; i < 6; i++)
     prevState.bInfo[i+2] = sortedKeys[i];
 };
-
-void KbdRemapper::debugPrint(uint8_t modBefore, uint8_t modAfter, uint8_t *sortedKeysBefore, uint8_t *sortedKeysAfter) {
-  printMod(modBefore);
-  Serial.print(" ");
-  for (uint8_t i=0; i<6; i++) {
-    PrintHex<uint8_t>(sortedKeysBefore[i], 0x80);
-    Serial.print(" ");
-  }
-  Serial.print("-> ");
-  printMod(modAfter);
-  Serial.print(" ");
-  for (uint8_t i=0; i<6; i++) {
-    PrintHex<uint8_t>(sortedKeysAfter[i], 0x80);
-    Serial.print(" ");
-  }
-  Serial.print("\n");
-}
 
 void KbdRemapper::init(void) {
   keyboard::initKeyboard();
@@ -95,21 +99,4 @@ void KbdRemapper::init(void) {
 
 void KbdRemapper::setKeymap(keymap::KeyMap *newKeymaps) {
   keymaps = newKeymaps;
-}
-
-void KbdRemapper::printMod(uint8_t m) {
-  MODIFIERKEYS mod;
-  *((uint8_t*)&mod) = m;
-
-  Serial.print((mod.bmLeftCtrl   == 1) ? "C" : "_");
-  Serial.print((mod.bmLeftShift  == 1) ? "S" : "_");
-  Serial.print((mod.bmLeftAlt    == 1) ? "A" : "_");
-  Serial.print((mod.bmLeftGUI    == 1) ? "G" : "_");
-
-  Serial.print(" ");
-
-  Serial.print((mod.bmRightCtrl   == 1) ? "C" : "_");
-  Serial.print((mod.bmRightShift  == 1) ? "S" : "_");
-  Serial.print((mod.bmRightAlt    == 1) ? "A" : "_");
-  Serial.print((mod.bmRightGUI    == 1) ? "G" : "_");
 }
