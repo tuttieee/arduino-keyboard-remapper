@@ -46,7 +46,6 @@ target_link_libraries(keyreport-test gtest_main)
 add_test(NAME keyreport-test COMMAND $<TARGET_FILE:keyreport-test>)
 
 add_executable(keymap-on_keys_changed-test
-  keymap/utils.cpp
   keymap/on_keys_changed_tests/caps_ctrl_test.cpp
   keymap/on_keys_changed_tests/multi_dst_mod_test.cpp
   keymap/on_keys_changed_tests/single_key_test.cpp

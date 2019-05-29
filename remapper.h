@@ -12,7 +12,6 @@ class KbdRemapper : public KeyboardReportParser
 {
   private:
     keymap::KeyMap *keymaps;
-    bool keyPressedFlags[KEYMAP_SIZE];
 
     void Parse(USBHID *hid, bool is_rpt_id __attribute__((unused)), uint8_t len __attribute__((unused)), uint8_t *buf);
 

@@ -39,53 +39,38 @@ void removeKeys(KeyMap keymap, uint8_t keys[]) {
   }
 }
 
-void onKeysChanged(KeyMap keymaps[], int keymapSize, KeyPressedFlag keyPressedFlags[], uint8_t mod, uint8_t* sortedKeys, uint8_t* mappedMod, uint8_t* mappedKeys) {
+void removeMod(KeyMap keymap, uint8_t* mod) {
+  *mod &= ~keymap.src.mod;
+}
+
+void onKeysChanged(KeyMap keymaps[], int keymapSize, uint8_t mod, uint8_t* sortedKeys, uint8_t* mappedMod, uint8_t* mappedKeys) {
+  *mappedMod = 0;
   memset(mappedKeys, 0, KEY_REPORT_KEYS_NUM * sizeof(uint8_t));
 
   uint8_t mappedKeySetIdx = 0;
 
-  *mappedMod = mod;
-  uint8_t mappedModBits = 0;
-
-  // Already mapped mods are ignored
-  for (int i=0; i<keymapSize; i++) {
-    if (keyPressedFlags[i]) {
-      *mappedMod &= ~keymaps[i].src.mod;
-    }
-  }
-
+  uint8_t modPool = mod;
   uint8_t keyPool[6];
   memcpy(keyPool, sortedKeys, sizeof(uint8_t) * 6);
 
   for (uint8_t iKeymap = 0; iKeymap < keymapSize; iKeymap++) {
-    if ((keymaps[iKeymap].src.mod == 0 || keymaps[iKeymap].src.mod == mod)
+    if ((keymaps[iKeymap].src.mod == 0 || keymaps[iKeymap].src.mod == modPool)
         && keymapMatched(keymaps[iKeymap], keyPool)) {
       removeKeys(keymaps[iKeymap], keyPool);
+      removeMod(keymaps[iKeymap], &modPool);
 
-      if (keyPressedFlags[iKeymap] == false) {
-        // Newly pressed
-        if (keymaps[iKeymap].dst.key != 0) {
-          mappedKeys[mappedKeySetIdx++] = keymaps[iKeymap].dst.key;
-        }
+      if (keymaps[iKeymap].dst.key != 0) {
+        mappedKeys[mappedKeySetIdx++] = keymaps[iKeymap].dst.key;
       }
 
-      // mappedMod is set even if the keymap is already matched
       if (keymaps[iKeymap].dst.mod != 0) {
-        // Set keymaps[i].dst.mod's bit in mappedMod to 1;
         *mappedMod |= keymaps[iKeymap].dst.mod;
-        // Set keymaps[i].src.mod's bit in mappedMod to 0 if the bit is not mapped from any mod bits;
-        *mappedMod &= ~(keymaps[iKeymap].src.mod & ~mappedModBits);
-        // Save the mapped bit
-        mappedModBits |= keymaps[iKeymap].src.mod;
       }
-
-      keyPressedFlags[iKeymap] = true;
-    } else {
-      keyPressedFlags[iKeymap] = false;
     }
   }
 
   memcpy(mappedKeys + mappedKeySetIdx, keyPool, sizeof(uint8_t) * (6 - mappedKeySetIdx));
+  *mappedMod |= modPool;
 }
 
 }
