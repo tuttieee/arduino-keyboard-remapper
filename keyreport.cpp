@@ -7,6 +7,11 @@ void releaseAllKey(KeyReport* keyReport) {
   memset(keyReport, 0, sizeof(KeyReport));
 }
 
+void setKeys(KeyReport* keyReport, uint8_t mod, uint8_t keys[]) {
+  memcpy(keyReport->keys, keys, sizeof(keyReport->keys));
+  keyReport->modifiers = mod;
+}
+
 void setKeyPressed(KeyReport* keyReport, uint8_t mod, uint8_t key) {
   if (key != 0) {
     bool alreadySet = false;

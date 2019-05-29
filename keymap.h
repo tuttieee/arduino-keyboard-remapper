@@ -3,6 +3,8 @@
 
 #include "stdint.h"
 
+#include "keyreport.h"
+
 // This must match to MODIFIERKEYS defined in hidboot.h
 #define MOD_LEFT_CTRL   0b00000001
 #define MOD_LEFT_SHIFT  0b00000010
@@ -15,21 +17,26 @@
 
 namespace keymap {
 
+#define KEYS_NUM 2
+
+typedef struct {
+  uint8_t mod;
+  uint8_t keys[KEYS_NUM];
+} SrcKeyState;
 typedef struct {
   uint8_t mod;
   uint8_t key;
-} KeyCode;
+} DstKeyState;
 typedef struct {
-  KeyCode from;
-  KeyCode to;
+  SrcKeyState src;
+  DstKeyState dst;
 } KeyMap;
 
-typedef bool KeyPressedFlag;
+void onKeysChanged(KeyMap keymaps[], int keymapSize, uint8_t mod, uint8_t* sortedKeys, uint8_t* mappedMod, uint8_t* mappedKeys);
 
-void onKeyPressed(KeyMap keymaps[], int keymapSize, KeyPressedFlag keyPressedFlags[], uint8_t* mod, uint8_t* key);
-void onKeyReleased(KeyMap keymaps[], int keymapSize, KeyPressedFlag keyPressedFlags[], uint8_t* mod, uint8_t* key);
-int onModChanged(KeyMap keymaps[], int keymapSize, KeyPressedFlag keyPressedFlags[], uint8_t before, uint8_t after, uint8_t* mappedMod, bool* isKeyMapped, uint8_t* mappedKey, bool* mappedKeyPressed);
-
+bool isKeyIncluded(uint8_t key, uint8_t keys[]);
+bool keymapMatched(KeyMap keymap, uint8_t keys[]);
+void removeKeys(KeyMap keymap, uint8_t keys[]);
 }
 
 #endif
